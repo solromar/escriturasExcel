@@ -80,7 +80,6 @@ class ExcelController extends AbstractController
             // Agregar el valor de fileName a la columna A
             $sheet->setCellValue('A' . $initialRow, $fileName);
 
-
             // Definir las variables de los campos del archivo JSON en la columna que corresponde al Excel
             $cellMapping = [
                 'B' => 'fileSubType',
@@ -88,6 +87,12 @@ class ExcelController extends AbstractController
                 'D' => 'Tipo de sociedad',
                 'G' => 'CIF',
             ];
+            // Recorrer el mapeo y asignar los valores del archivo JSON a las celdas correspondientes
+            foreach ($cellMapping as $column => $field) {
+                $cell = $column . $initialRow;
+                $value = isset($answer[$field]) ? $answer[$field] : '';
+                $sheet->setCellValue($cell, $value);
+            }
             //----------------------------------------- Razon Social ---------------------------------------------//
             if (isset($answer['Razón Social'][0])) {
                 $razonSocial = $answer['Razón Social'][0];
@@ -102,8 +107,7 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue('J' . $initialRow, $registroMercantil['Tomo']);
                 $sheet->setCellValue('K' . $initialRow, $registroMercantil['Inscripción']);
             }
-
-            //---------------------------------------Notarios hasta 3----------------------------------------//
+            //---------------------------------------Notario----------------------------------------//
             if (isset($answer['Notario'][0])) {
                 $notario1 = $answer['Notario'][0];
                 $sheet->setCellValue('L' . $initialRow, $notario1['Nombre/Apellido']);
@@ -112,68 +116,103 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue('O' . $initialRow, $notario1['Localidad']);
                 $sheet->setCellValue('P' . $initialRow, $notario1['Col. notarios']);
             }
-            if (isset($answer['Notario'][1])) {
-                $notario2 = $answer['Notario'][1];
-                $sheet->setCellValue('Q' . $initialRow, $notario2['Nombre/Apellido']);
-                $sheet->setCellValue('R' . $initialRow, $notario2['Num. protocolo']);
-                $sheet->setCellValue('S' . $initialRow, $notario2['Fecha escritura']);
-                $sheet->setCellValue('T' . $initialRow, $notario2['Localidad']);
-                $sheet->setCellValue('U' . $initialRow, $notario2['Col. notarios']);
-            }
-
-            if (isset($answer['Notario'][2])) {
-                $notario3 = $answer['Notario'][2];
-                $sheet->setCellValue('V' . $initialRow, $notario3['Nombre/Apellido']);
-                $sheet->setCellValue('W' . $initialRow, $notario3['Num. protocolo']);
-                $sheet->setCellValue('X' . $initialRow, $notario3['Fecha escritura']);
-                $sheet->setCellValue('Y' . $initialRow, $notario3['Localidad']);
-                $sheet->setCellValue('Z' . $initialRow, $notario3['Col. notarios']);
-            }
-            //--------------------------------------Apoderados hasta 3---------------------------------//
+            //--------------------------------------Apoderados hasta 8---------------------------------//
             if (isset($answer['Apoderado'][0])) {
                 $apoderado1 = $answer['Apoderado'][0];
-                $sheet->setCellValue('AA' . $initialRow, $apoderado1['Nombres']);
-                $sheet->setCellValue('AB' . $initialRow, $apoderado1['Apellidos']);
-                $sheet->setCellValue('AC' . $initialRow, $apoderado1['Número DNI']);
-                $sheet->setCellValue('AD' . $initialRow, $apoderado1['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('AE' . $initialRow, $apoderado1['Domicilio - Nombre']);
-                $sheet->setCellValue('AF' . $initialRow, $apoderado1['Domicilio - Número']);
-                $sheet->setCellValue('AG' . $initialRow, $apoderado1['Domicilio - Localidad']);
-                $sheet->setCellValue('AH' . $initialRow, $apoderado1['Domicilio - Provincia']);
-                $sheet->setCellValue('AI' . $initialRow, $apoderado1['Tipo de apoderamiento']);
+                $sheet->setCellValue('Q' . $initialRow, $apoderado1['Nombres']);
+                $sheet->setCellValue('R' . $initialRow, $apoderado1['Apellidos']);
+                $sheet->setCellValue('R' . $initialRow, $apoderado1['Número DNI']);
+                $sheet->setCellValue('T' . $initialRow, $apoderado1['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('U' . $initialRow, $apoderado1['Domicilio - Nombre']);
+                $sheet->setCellValue('V' . $initialRow, $apoderado1['Domicilio - Número']);
+                $sheet->setCellValue('W' . $initialRow, $apoderado1['Domicilio - Localidad']);
+                $sheet->setCellValue('X' . $initialRow, $apoderado1['Domicilio - Provincia']);
+                $sheet->setCellValue('Y' . $initialRow, $apoderado1['Tipo de apoderamiento']);
             }
             if (isset($answer['Apoderado'][1])) {
                 $apoderado2 = $answer['Apoderado'][1];
-                $sheet->setCellValue('AJ' . $initialRow, $apoderado2['Nombres']);
-                $sheet->setCellValue('AK' . $initialRow, $apoderado2['Apellidos']);
-                $sheet->setCellValue('AL' . $initialRow, $apoderado2['Número DNI']);
-                $sheet->setCellValue('AM' . $initialRow, $apoderado2['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('AN' . $initialRow, $apoderado2['Domicilio - Nombre']);
-                $sheet->setCellValue('AO' . $initialRow, $apoderado2['Domicilio - Número']);
-                $sheet->setCellValue('AP' . $initialRow, $apoderado2['Domicilio - Localidad']);
-                $sheet->setCellValue('AQ' . $initialRow, $apoderado2['Domicilio - Provincia']);
-                $sheet->setCellValue('AR' . $initialRow, $apoderado2['Tipo de apoderamiento']);
+                $sheet->setCellValue('Z' . $initialRow, $apoderado2['Nombres']);
+                $sheet->setCellValue('AA' . $initialRow, $apoderado2['Apellidos']);
+                $sheet->setCellValue('AB' . $initialRow, $apoderado2['Número DNI']);
+                $sheet->setCellValue('AC' . $initialRow, $apoderado2['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('AD' . $initialRow, $apoderado2['Domicilio - Nombre']);
+                $sheet->setCellValue('AE' . $initialRow, $apoderado2['Domicilio - Número']);
+                $sheet->setCellValue('AF' . $initialRow, $apoderado2['Domicilio - Localidad']);
+                $sheet->setCellValue('AG' . $initialRow, $apoderado2['Domicilio - Provincia']);
+                $sheet->setCellValue('AH' . $initialRow, $apoderado2['Tipo de apoderamiento']);
             }
-
             if (isset($answer['Apoderado'][2])) {
                 $apoderado3 = $answer['Apoderado'][2];
-                $sheet->setCellValue('AS' . $initialRow, $apoderado3['Nombres']);
-                $sheet->setCellValue('AT' . $initialRow, $apoderado3['Apellidos']);
-                $sheet->setCellValue('AU' . $initialRow, $apoderado3['Número DNI']);
-                $sheet->setCellValue('AV' . $initialRow, $apoderado3['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('AW' . $initialRow, $apoderado3['Domicilio - Nombre']);
-                $sheet->setCellValue('AX' . $initialRow, $apoderado3['Domicilio - Número']);
-                $sheet->setCellValue('AY' . $initialRow, $apoderado3['Domicilio - Localidad']);
-                $sheet->setCellValue('AZ' . $initialRow, $apoderado3['Domicilio - Provincia']);
-                $sheet->setCellValue('BA' . $initialRow, $apoderado3['Tipo de apoderamiento']);
+                $sheet->setCellValue('AI' . $initialRow, $apoderado3['Nombres']);
+                $sheet->setCellValue('AJ' . $initialRow, $apoderado3['Apellidos']);
+                $sheet->setCellValue('AK' . $initialRow, $apoderado3['Número DNI']);
+                $sheet->setCellValue('AL' . $initialRow, $apoderado3['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('AM' . $initialRow, $apoderado3['Domicilio - Nombre']);
+                $sheet->setCellValue('AN' . $initialRow, $apoderado3['Domicilio - Número']);
+                $sheet->setCellValue('AO' . $initialRow, $apoderado3['Domicilio - Localidad']);
+                $sheet->setCellValue('AP' . $initialRow, $apoderado3['Domicilio - Provincia']);
+                $sheet->setCellValue('AQ' . $initialRow, $apoderado3['Tipo de apoderamiento']);
             }
-        }
-
-        // Recorrer el mapeo y asignar los valores del archivo JSON a las celdas correspondientes
-        foreach ($cellMapping as $column => $field) {
-            $cell = $column . $initialRow;
-            $value = isset($answer[$field]) ? $answer[$field] : '';
-            $sheet->setCellValue($cell, $value);
+            if (isset($answer['Apoderado'][3])) {
+                $apoderado4 = $answer['Apoderado'][3];
+                $sheet->setCellValue('AR' . $initialRow, $apoderado4['Nombres']);
+                $sheet->setCellValue('AS' . $initialRow, $apoderado4['Apellidos']);
+                $sheet->setCellValue('AT' . $initialRow, $apoderado4['Número DNI']);
+                $sheet->setCellValue('AU' . $initialRow, $apoderado4['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('AV' . $initialRow, $apoderado4['Domicilio - Nombre']);
+                $sheet->setCellValue('AW' . $initialRow, $apoderado4['Domicilio - Número']);
+                $sheet->setCellValue('AX' . $initialRow, $apoderado4['Domicilio - Localidad']);
+                $sheet->setCellValue('AY' . $initialRow, $apoderado4['Domicilio - Provincia']);
+                $sheet->setCellValue('AZ' . $initialRow, $apoderado4['Tipo de apoderamiento']);
+            }
+            if (isset($answer['Apoderado'][4])) {
+                $apoderado5 = $answer['Apoderado'][4];
+                $sheet->setCellValue('BA' . $initialRow, $apoderado5['Nombres']);
+                $sheet->setCellValue('BB' . $initialRow, $apoderado5['Apellidos']);
+                $sheet->setCellValue('BC' . $initialRow, $apoderado5['Número DNI']);
+                $sheet->setCellValue('BD' . $initialRow, $apoderado5['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('BE' . $initialRow, $apoderado5['Domicilio - Nombre']);
+                $sheet->setCellValue('BF' . $initialRow, $apoderado5['Domicilio - Número']);
+                $sheet->setCellValue('BG' . $initialRow, $apoderado5['Domicilio - Localidad']);
+                $sheet->setCellValue('BH' . $initialRow, $apoderado5['Domicilio - Provincia']);
+                $sheet->setCellValue('BI' . $initialRow, $apoderado5['Tipo de apoderamiento']);
+            }
+            if (isset($answer['Apoderado'][5])) {
+                $apoderado6 = $answer['Apoderado'][5];
+                $sheet->setCellValue('BJ' . $initialRow, $apoderado6['Nombres']);
+                $sheet->setCellValue('BK' . $initialRow, $apoderado6['Apellidos']);
+                $sheet->setCellValue('BL' . $initialRow, $apoderado6['Número DNI']);
+                $sheet->setCellValue('BM' . $initialRow, $apoderado6['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('BN' . $initialRow, $apoderado6['Domicilio - Nombre']);
+                $sheet->setCellValue('BO' . $initialRow, $apoderado6['Domicilio - Número']);
+                $sheet->setCellValue('BP' . $initialRow, $apoderado6['Domicilio - Localidad']);
+                $sheet->setCellValue('BQ' . $initialRow, $apoderado6['Domicilio - Provincia']);
+                $sheet->setCellValue('BR' . $initialRow, $apoderado6['Tipo de apoderamiento']);
+            }
+            if (isset($answer['Apoderado'][6])) {
+                $apoderado7 = $answer['Apoderado'][6];
+                $sheet->setCellValue('BS' . $initialRow, $apoderado7['Nombres']);
+                $sheet->setCellValue('BT' . $initialRow, $apoderado7['Apellidos']);
+                $sheet->setCellValue('BU' . $initialRow, $apoderado7['Número DNI']);
+                $sheet->setCellValue('BV' . $initialRow, $apoderado7['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('BW' . $initialRow, $apoderado7['Domicilio - Nombre']);
+                $sheet->setCellValue('BX' . $initialRow, $apoderado7['Domicilio - Número']);
+                $sheet->setCellValue('BY' . $initialRow, $apoderado7['Domicilio - Localidad']);
+                $sheet->setCellValue('BZ' . $initialRow, $apoderado7['Domicilio - Provincia']);
+                $sheet->setCellValue('CA' . $initialRow, $apoderado7['Tipo de apoderamiento']);
+            }
+            if (isset($answer['Apoderado'][7])) {
+                $apoderado8 = $answer['Apoderado'][7];
+                $sheet->setCellValue('CB' . $initialRow, $apoderado8['Nombres']);
+                $sheet->setCellValue('CC' . $initialRow, $apoderado8['Apellidos']);
+                $sheet->setCellValue('CD' . $initialRow, $apoderado8['Número DNI']);
+                $sheet->setCellValue('CE' . $initialRow, $apoderado8['Domicilio - Tipo de Vía']);
+                $sheet->setCellValue('CF' . $initialRow, $apoderado8['Domicilio - Nombre']);
+                $sheet->setCellValue('CG' . $initialRow, $apoderado8['Domicilio - Número']);
+                $sheet->setCellValue('CH' . $initialRow, $apoderado8['Domicilio - Localidad']);
+                $sheet->setCellValue('CI' . $initialRow, $apoderado8['Domicilio - Provincia']);
+                $sheet->setCellValue('CJ' . $initialRow, $apoderado8['Tipo de apoderamiento']);
+            }
         }
     }
 }
