@@ -70,15 +70,27 @@ class ExcelController extends AbstractController
 
     private function assignDataToExcel(Worksheet $sheet, array $data, int $initialRow): void
     {
-        // 1-Busqueda de variables en ANSWER
-        if (isset($data['processes']['GPT4 8K Azure']['result']['answer'])) {
+
+        /*if (isset($data['processes']['GPT4 8K Azure']['result']['answer'])) {
             $answer = $data['processes']['GPT4 8K Azure']['result']['answer'];
+           
+            foreach ($data as $result) {                     
+                if (isset($result['model']) && $result['model'] === 'GPT4 8K Azure (gpt-4)' && isset($result['answer'])) {                    
+                    $answer = $result['answer'];*/
+
+                    foreach ($data as $key => $value) {
+                        if (isset($value['result']) && is_array($value['result'])) {
+                            foreach ($value['result'] as $result) {
+                                if (isset($result['model']) && $result['model'] === 'GPT4 8K Azure (gpt-4)' && isset($result['answer'])) {
+                                    $answer = $result['answer'];
+                    
 
             // Obtener el valor de fileName de la sección "Categorizador_GPT4 8K Azure"
-            $fileName = $data['processes']['Categorizador_GPT4 8K Azure']['result']['fileName'];
+           // $fileName = $data['processes']['Categorizador_GPT4 8K Azure']['result']['fileName'];
 
             // Agregar el valor de fileName a la columna A
-            $sheet->setCellValue('A' . $initialRow, $fileName);
+            //$sheet->setCellValue('A' . $initialRow, $fileName);
+
 
             // Definir las variables de los campos del archivo JSON en la columna que corresponde al Excel
             $cellMapping = [
@@ -95,9 +107,9 @@ class ExcelController extends AbstractController
             }
             //----------------------------------------- Razon Social ---------------------------------------------//
             if (isset($answer['Razón Social'][0])) {
-                $razonSocial = $answer['Razón Social'][0];
+                $razonSocial = $answer['Razón Social'][0];                
                 $sheet->setCellValue('E' . $initialRow, $razonSocial['Denominación']);
-                $sheet->setCellValue('F' . $initialRow, $razonSocial['Domicilio social']);
+                //$sheet->setCellValue('F' . $initialRow, $razonSocial['Domicilio social']);
             }
             //-----------------------------------Inscripcion Registro Mercantil-------------------------------//
             if (isset($answer['Inscripción Reg. Mercantil'][0])) {
@@ -121,7 +133,7 @@ class ExcelController extends AbstractController
                 $apoderado1 = $answer['Apoderado'][0];
                 $sheet->setCellValue('Q' . $initialRow, $apoderado1['Nombres']);
                 $sheet->setCellValue('R' . $initialRow, $apoderado1['Apellidos']);
-                $sheet->setCellValue('R' . $initialRow, $apoderado1['Número DNI']);
+                $sheet->setCellValue('S' . $initialRow, $apoderado1['Número DNI']);
                 $sheet->setCellValue('T' . $initialRow, $apoderado1['Domicilio - Tipo de Vía']);
                 $sheet->setCellValue('U' . $initialRow, $apoderado1['Domicilio - Nombre']);
                 $sheet->setCellValue('V' . $initialRow, $apoderado1['Domicilio - Número']);
@@ -216,3 +228,5 @@ class ExcelController extends AbstractController
         }
     }
 }
+}
+    }}
