@@ -14,14 +14,14 @@ class ExcelController extends AbstractController
     public function transformJsonToExcel(): Response
     {
         // Ruta de la carpeta que contiene los archivos JSON
-        $jsonFolderPath = $this->getParameter('kernel.project_dir') . '/public/archivosJson';
+        $jsonFolderPath = $this->getParameter('kernel.project_dir') . '/public/1-prueba';
 
         // Obtener la lista de archivos JSON en la carpeta
         $jsonFiles = glob($jsonFolderPath . '/*.json');
 
 
         // Ruta del archivo Excel predefinido
-        $excelFilePath = $this->getParameter('kernel.project_dir') . '/public/archivosExcel/Modelo Excel.xlsx';
+        $excelFilePath = $this->getParameter('kernel.project_dir') . '/public/archivosExcel/otra.xlsx';
 
         // Cargar el archivo Excel existente
         $spreadsheet = IOFactory::load($excelFilePath);
@@ -70,26 +70,32 @@ class ExcelController extends AbstractController
 
     private function assignDataToExcel(Worksheet $sheet, array $data, int $initialRow): void
     {
+        // Obtener el valor de fileName de la sección "Categorizador_GPT4 8K Azure"
+        // $fileName = $data['processes']['Categorizador_GPT4 8K Azure']['result']['fileName'];
 
-        /*if (isset($data['processes']['GPT4 8K Azure']['result']['answer'])) {
+        // Agregar el valor de fileName a la columna A
+        //$sheet->setCellValue('A' . $initialRow, $fileName);
+
+
+        $answer = null;
+
+        if (isset($data['processes']['GPT4 8K Azure']['result']['answer'])) {
             $answer = $data['processes']['GPT4 8K Azure']['result']['answer'];
-           
-            foreach ($data as $result) {                     
-                if (isset($result['model']) && $result['model'] === 'GPT4 8K Azure (gpt-4)' && isset($result['answer'])) {                    
-                    $answer = $result['answer'];*/
+        } else {
+            foreach ($data as $key => $value) {
+                if (isset($value['result']) && is_array($value['result'])) {
+                    foreach ($value['result'] as $result) {
+                        if (isset($result['model']) && $result['model'] === 'GPT4 8K Azure (gpt-4)' && isset($result['answer'])) {
+                            $answer = $result['answer'];
+                            break 2; // Salir de ambos bucles si se encuentra el resultado deseado
+                        }
+                    }
+                }
+            }
+        }
 
-                    foreach ($data as $key => $value) {
-                        if (isset($value['result']) && is_array($value['result'])) {
-                            foreach ($value['result'] as $result) {
-                                if (isset($result['model']) && $result['model'] === 'GPT4 8K Azure (gpt-4)' && isset($result['answer'])) {
-                                    $answer = $result['answer'];
-                    
-
-            // Obtener el valor de fileName de la sección "Categorizador_GPT4 8K Azure"
-           // $fileName = $data['processes']['Categorizador_GPT4 8K Azure']['result']['fileName'];
-
-            // Agregar el valor de fileName a la columna A
-            //$sheet->setCellValue('A' . $initialRow, $fileName);
+        // Ahora puedes acceder a las variables dentro de $answer
+        if ($answer !== null) {
 
 
             // Definir las variables de los campos del archivo JSON en la columna que corresponde al Excel
@@ -106,27 +112,66 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue($cell, $value);
             }
             //----------------------------------------- Razon Social ---------------------------------------------//
-            if (isset($answer['Razón Social'][0])) {
-                $razonSocial = $answer['Razón Social'][0];                
+            if (isset($answer['Razón Social'])) {
+                $razonSocialData = $answer['Razón Social'];
+
+                if (is_array($razonSocialData) && isset($razonSocialData[0])) {
+                    // Si es un array de notarios con al menos un elemento, toma el primer elemento
+                    $razonSocial = $razonSocialData[0];
+                } else {
+                    // Si es un objeto de notario o un array con un solo elemento, usa directamente ese objeto
+                    $razonSocial = (array)($razonSocialData[0] ?? $razonSocialData);
+                }
+
+                // Ahora puedes acceder a los campos de notario y asignarlos a las celdas de Excel
                 $sheet->setCellValue('E' . $initialRow, $razonSocial['Denominación']);
-                //$sheet->setCellValue('F' . $initialRow, $razonSocial['Domicilio social']);
+                // Verificar si 'Domicilio social' está presente antes de asignarlo
+                if (isset($razonSocial['Domicilio social'])) {
+                    $sheet->setCellValue('F' . $initialRow, $razonSocial['Domicilio social']);
+                } else {
+                    // Asignar un mensaje cuando 'Domicilio social' no está presente
+                    $sheet->setCellValue('F' . $initialRow, 'Domicilio social no disponible');
+                    
+                }
             }
+
             //-----------------------------------Inscripcion Registro Mercantil-------------------------------//
-            if (isset($answer['Inscripción Reg. Mercantil'][0])) {
-                $registroMercantil = $answer['Inscripción Reg. Mercantil'][0];
+            if (isset($answer['Inscripción Reg. Mercantil'])) {
+                $registroData = $answer['Inscripción Reg. Mercantil'];
+
+                if (is_array($registroData) && isset($registroData[0])) {
+                    // Si es un array de notarios con al menos un elemento, toma el primer elemento
+                    $registroMercantil = $registroData[0];
+                } else {
+                    // Si es un objeto de notario o un array con un solo elemento, usa directamente ese objeto
+                    $registroMercantil = (array)($registroData[0] ?? $registroData);
+                }
+
+                // Ahora puedes acceder a los campos de notario y asignarlos a las celdas de Excel
                 $sheet->setCellValue('H' . $initialRow, $registroMercantil['Inscrito']);
                 $sheet->setCellValue('I' . $initialRow, $registroMercantil['Hoja']);
                 $sheet->setCellValue('J' . $initialRow, $registroMercantil['Tomo']);
                 $sheet->setCellValue('K' . $initialRow, $registroMercantil['Inscripción']);
             }
+            
             //---------------------------------------Notario----------------------------------------//
-            if (isset($answer['Notario'][0])) {
-                $notario1 = $answer['Notario'][0];
-                $sheet->setCellValue('L' . $initialRow, $notario1['Nombre/Apellido']);
-                $sheet->setCellValue('M' . $initialRow, $notario1['Num. protocolo']);
-                $sheet->setCellValue('N' . $initialRow, $notario1['Fecha escritura']);
-                $sheet->setCellValue('O' . $initialRow, $notario1['Localidad']);
-                $sheet->setCellValue('P' . $initialRow, $notario1['Col. notarios']);
+            if (isset($answer['Notario'])) {
+                $notarioData = $answer['Notario'];
+
+                if (is_array($notarioData) && isset($notarioData[0])) {
+                    // Si es un array de notarios con al menos un elemento, toma el primer elemento
+                    $notario = $notarioData[0];
+                } else {
+                    // Si es un objeto de notario o un array con un solo elemento, usa directamente ese objeto
+                    $notario = (array)($notarioData[0] ?? $notarioData);
+                }
+
+                // Ahora puedes acceder a los campos de notario y asignarlos a las celdas de Excel
+                $sheet->setCellValue('L' . $initialRow, $notario['Nombre/Apellido']);
+                $sheet->setCellValue('M' . $initialRow, $notario['Num. protocolo']);
+                $sheet->setCellValue('N' . $initialRow, $notario['Fecha escritura']);
+                $sheet->setCellValue('O' . $initialRow, $notario['Localidad']);
+                $sheet->setCellValue('P' . $initialRow, $notario['Col. notarios']);
             }
             //--------------------------------------Apoderados hasta 8---------------------------------//
             if (isset($answer['Apoderado'][0])) {
@@ -134,11 +179,23 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue('Q' . $initialRow, $apoderado1['Nombres']);
                 $sheet->setCellValue('R' . $initialRow, $apoderado1['Apellidos']);
                 $sheet->setCellValue('S' . $initialRow, $apoderado1['Número DNI']);
-                $sheet->setCellValue('T' . $initialRow, $apoderado1['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('U' . $initialRow, $apoderado1['Domicilio - Nombre']);
-                $sheet->setCellValue('V' . $initialRow, $apoderado1['Domicilio - Número']);
-                $sheet->setCellValue('W' . $initialRow, $apoderado1['Domicilio - Localidad']);
-                $sheet->setCellValue('X' . $initialRow, $apoderado1['Domicilio - Provincia']);
+                // Verificar la estructura del domicilio
+                if (isset($apoderado1['Domicilio'])) {
+                    // Si la información del domicilio está en un objeto 'Domicilio'
+                    $domicilio = $apoderado1['Domicilio'];
+                    $sheet->setCellValue('T' . $initialRow, $domicilio['Tipo de Vía']);
+                    $sheet->setCellValue('U' . $initialRow, $domicilio['Nombre']);
+                    $sheet->setCellValue('V' . $initialRow, $domicilio['Número']);
+                    $sheet->setCellValue('W' . $initialRow, $domicilio['Localidad']);
+                    $sheet->setCellValue('X' . $initialRow, $domicilio['Provincia']);
+                } else {
+                    // Si la información del domicilio está como campos separados
+                    $sheet->setCellValue('T' . $initialRow, $apoderado1['Domicilio - Tipo de Vía']);
+                    $sheet->setCellValue('U' . $initialRow, $apoderado1['Domicilio - Nombre']);
+                    $sheet->setCellValue('V' . $initialRow, $apoderado1['Domicilio - Número']);
+                    $sheet->setCellValue('W' . $initialRow, $apoderado1['Domicilio - Localidad']);
+                    $sheet->setCellValue('X' . $initialRow, $apoderado1['Domicilio - Provincia']);
+                }
                 $sheet->setCellValue('Y' . $initialRow, $apoderado1['Tipo de apoderamiento']);
             }
             if (isset($answer['Apoderado'][1])) {
@@ -146,11 +203,23 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue('Z' . $initialRow, $apoderado2['Nombres']);
                 $sheet->setCellValue('AA' . $initialRow, $apoderado2['Apellidos']);
                 $sheet->setCellValue('AB' . $initialRow, $apoderado2['Número DNI']);
-                $sheet->setCellValue('AC' . $initialRow, $apoderado2['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('AD' . $initialRow, $apoderado2['Domicilio - Nombre']);
-                $sheet->setCellValue('AE' . $initialRow, $apoderado2['Domicilio - Número']);
-                $sheet->setCellValue('AF' . $initialRow, $apoderado2['Domicilio - Localidad']);
-                $sheet->setCellValue('AG' . $initialRow, $apoderado2['Domicilio - Provincia']);
+                // Verificar la estructura del domicilio
+                if (isset($apoderado2['Domicilio'])) {
+                    // Si la información del domicilio está en un objeto 'Domicilio'
+                    $domicilio = $apoderado2['Domicilio'];
+                    $sheet->setCellValue('AC' . $initialRow, $domicilio['Tipo de Vía']);
+                    $sheet->setCellValue('AD' . $initialRow, $domicilio['Nombre']);
+                    $sheet->setCellValue('AE' . $initialRow, $domicilio['Número']);
+                    $sheet->setCellValue('AF' . $initialRow, $domicilio['Localidad']);
+                    $sheet->setCellValue('AG' . $initialRow, $domicilio['Provincia']);
+                } else {
+                    // Si la información del domicilio está como campos separados
+                    $sheet->setCellValue('AC' . $initialRow, $apoderado2['Domicilio - Tipo de Vía']);
+                    $sheet->setCellValue('AD' . $initialRow, $apoderado2['Domicilio - Nombre']);
+                    $sheet->setCellValue('AE' . $initialRow, $apoderado2['Domicilio - Número']);
+                    $sheet->setCellValue('AF' . $initialRow, $apoderado2['Domicilio - Localidad']);
+                    $sheet->setCellValue('AG' . $initialRow, $apoderado2['Domicilio - Provincia']);
+                }
                 $sheet->setCellValue('AH' . $initialRow, $apoderado2['Tipo de apoderamiento']);
             }
             if (isset($answer['Apoderado'][2])) {
@@ -158,11 +227,23 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue('AI' . $initialRow, $apoderado3['Nombres']);
                 $sheet->setCellValue('AJ' . $initialRow, $apoderado3['Apellidos']);
                 $sheet->setCellValue('AK' . $initialRow, $apoderado3['Número DNI']);
-                $sheet->setCellValue('AL' . $initialRow, $apoderado3['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('AM' . $initialRow, $apoderado3['Domicilio - Nombre']);
-                $sheet->setCellValue('AN' . $initialRow, $apoderado3['Domicilio - Número']);
-                $sheet->setCellValue('AO' . $initialRow, $apoderado3['Domicilio - Localidad']);
-                $sheet->setCellValue('AP' . $initialRow, $apoderado3['Domicilio - Provincia']);
+                // Verificar la estructura del domicilio
+                if (isset($apoderado3['Domicilio'])) {
+                    // Si la información del domicilio está en un objeto 'Domicilio'
+                    $domicilio = $apoderado3['Domicilio'];
+                    $sheet->setCellValue('AL' . $initialRow, $domicilio['Tipo de Vía']);
+                    $sheet->setCellValue('AM' . $initialRow, $domicilio['Nombre']);
+                    $sheet->setCellValue('AN' . $initialRow, $domicilio['Número']);
+                    $sheet->setCellValue('AO' . $initialRow, $domicilio['Localidad']);
+                    $sheet->setCellValue('AP' . $initialRow, $domicilio['Provincia']);
+                } else {
+                    // Si la información del domicilio está como campos separados
+                    $sheet->setCellValue('AL' . $initialRow, $apoderado3['Domicilio - Tipo de Vía']);
+                    $sheet->setCellValue('AM' . $initialRow, $apoderado3['Domicilio - Nombre']);
+                    $sheet->setCellValue('AN' . $initialRow, $apoderado3['Domicilio - Número']);
+                    $sheet->setCellValue('AO' . $initialRow, $apoderado3['Domicilio - Localidad']);
+                    $sheet->setCellValue('AP' . $initialRow, $apoderado3['Domicilio - Provincia']);
+                }
                 $sheet->setCellValue('AQ' . $initialRow, $apoderado3['Tipo de apoderamiento']);
             }
             if (isset($answer['Apoderado'][3])) {
@@ -170,63 +251,27 @@ class ExcelController extends AbstractController
                 $sheet->setCellValue('AR' . $initialRow, $apoderado4['Nombres']);
                 $sheet->setCellValue('AS' . $initialRow, $apoderado4['Apellidos']);
                 $sheet->setCellValue('AT' . $initialRow, $apoderado4['Número DNI']);
-                $sheet->setCellValue('AU' . $initialRow, $apoderado4['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('AV' . $initialRow, $apoderado4['Domicilio - Nombre']);
-                $sheet->setCellValue('AW' . $initialRow, $apoderado4['Domicilio - Número']);
-                $sheet->setCellValue('AX' . $initialRow, $apoderado4['Domicilio - Localidad']);
-                $sheet->setCellValue('AY' . $initialRow, $apoderado4['Domicilio - Provincia']);
+                // Verificar la estructura del domicilio
+                if (isset($apoderado4['Domicilio'])) {
+                    // Si la información del domicilio está en un objeto 'Domicilio'
+                    $domicilio = $apoderado4['Domicilio'];
+                    $sheet->setCellValue('AU' . $initialRow, $domicilio['Tipo de Vía']);
+                    $sheet->setCellValue('AV' . $initialRow, $domicilio['Nombre']);
+                    $sheet->setCellValue('AW' . $initialRow, $domicilio['Número']);
+                    $sheet->setCellValue('AX' . $initialRow, $domicilio['Localidad']);
+                    $sheet->setCellValue('AY' . $initialRow, $domicilio['Provincia']);
+                } else {
+                    // Si la información del domicilio está como campos separados
+                    $sheet->setCellValue('AU' . $initialRow, $apoderado4['Domicilio - Tipo de Vía']);
+                    $sheet->setCellValue('AV' . $initialRow, $apoderado4['Domicilio - Nombre']);
+                    $sheet->setCellValue('AW' . $initialRow, $apoderado4['Domicilio - Número']);
+                    $sheet->setCellValue('AX' . $initialRow, $apoderado4['Domicilio - Localidad']);
+                    $sheet->setCellValue('AY' . $initialRow, $apoderado4['Domicilio - Provincia']);
+                }
                 $sheet->setCellValue('AZ' . $initialRow, $apoderado4['Tipo de apoderamiento']);
             }
-            if (isset($answer['Apoderado'][4])) {
-                $apoderado5 = $answer['Apoderado'][4];
-                $sheet->setCellValue('BA' . $initialRow, $apoderado5['Nombres']);
-                $sheet->setCellValue('BB' . $initialRow, $apoderado5['Apellidos']);
-                $sheet->setCellValue('BC' . $initialRow, $apoderado5['Número DNI']);
-                $sheet->setCellValue('BD' . $initialRow, $apoderado5['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('BE' . $initialRow, $apoderado5['Domicilio - Nombre']);
-                $sheet->setCellValue('BF' . $initialRow, $apoderado5['Domicilio - Número']);
-                $sheet->setCellValue('BG' . $initialRow, $apoderado5['Domicilio - Localidad']);
-                $sheet->setCellValue('BH' . $initialRow, $apoderado5['Domicilio - Provincia']);
-                $sheet->setCellValue('BI' . $initialRow, $apoderado5['Tipo de apoderamiento']);
-            }
-            if (isset($answer['Apoderado'][5])) {
-                $apoderado6 = $answer['Apoderado'][5];
-                $sheet->setCellValue('BJ' . $initialRow, $apoderado6['Nombres']);
-                $sheet->setCellValue('BK' . $initialRow, $apoderado6['Apellidos']);
-                $sheet->setCellValue('BL' . $initialRow, $apoderado6['Número DNI']);
-                $sheet->setCellValue('BM' . $initialRow, $apoderado6['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('BN' . $initialRow, $apoderado6['Domicilio - Nombre']);
-                $sheet->setCellValue('BO' . $initialRow, $apoderado6['Domicilio - Número']);
-                $sheet->setCellValue('BP' . $initialRow, $apoderado6['Domicilio - Localidad']);
-                $sheet->setCellValue('BQ' . $initialRow, $apoderado6['Domicilio - Provincia']);
-                $sheet->setCellValue('BR' . $initialRow, $apoderado6['Tipo de apoderamiento']);
-            }
-            if (isset($answer['Apoderado'][6])) {
-                $apoderado7 = $answer['Apoderado'][6];
-                $sheet->setCellValue('BS' . $initialRow, $apoderado7['Nombres']);
-                $sheet->setCellValue('BT' . $initialRow, $apoderado7['Apellidos']);
-                $sheet->setCellValue('BU' . $initialRow, $apoderado7['Número DNI']);
-                $sheet->setCellValue('BV' . $initialRow, $apoderado7['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('BW' . $initialRow, $apoderado7['Domicilio - Nombre']);
-                $sheet->setCellValue('BX' . $initialRow, $apoderado7['Domicilio - Número']);
-                $sheet->setCellValue('BY' . $initialRow, $apoderado7['Domicilio - Localidad']);
-                $sheet->setCellValue('BZ' . $initialRow, $apoderado7['Domicilio - Provincia']);
-                $sheet->setCellValue('CA' . $initialRow, $apoderado7['Tipo de apoderamiento']);
-            }
-            if (isset($answer['Apoderado'][7])) {
-                $apoderado8 = $answer['Apoderado'][7];
-                $sheet->setCellValue('CB' . $initialRow, $apoderado8['Nombres']);
-                $sheet->setCellValue('CC' . $initialRow, $apoderado8['Apellidos']);
-                $sheet->setCellValue('CD' . $initialRow, $apoderado8['Número DNI']);
-                $sheet->setCellValue('CE' . $initialRow, $apoderado8['Domicilio - Tipo de Vía']);
-                $sheet->setCellValue('CF' . $initialRow, $apoderado8['Domicilio - Nombre']);
-                $sheet->setCellValue('CG' . $initialRow, $apoderado8['Domicilio - Número']);
-                $sheet->setCellValue('CH' . $initialRow, $apoderado8['Domicilio - Localidad']);
-                $sheet->setCellValue('CI' . $initialRow, $apoderado8['Domicilio - Provincia']);
-                $sheet->setCellValue('CJ' . $initialRow, $apoderado8['Tipo de apoderamiento']);
-            }
+        } else {
+            // No se encontró el resultado deseado en ninguna de las estructuras
         }
     }
 }
-}
-    }}
